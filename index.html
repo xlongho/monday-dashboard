@@ -29,6 +29,7 @@
       min-height: 100vh;
     }
 
+    /* ── Header ── */
     header {
       background: var(--surface);
       border-bottom: 1px solid var(--border);
@@ -47,12 +48,14 @@
     header h1 { font-size: 18px; font-weight: 700; }
     header p  { font-size: 13px; color: var(--muted); }
 
+    /* ── Layout ── */
     main {
       max-width: 960px;
       margin: 0 auto;
       padding: 32px 24px;
     }
 
+    /* ── Card ── */
     .card {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -69,6 +72,7 @@
       margin-bottom: 16px;
     }
 
+    /* ── Form controls ── */
     .field { margin-bottom: 16px; }
     label  { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
     input, select {
@@ -111,6 +115,7 @@
     }
     .btn-ghost:hover { background: var(--surface2); }
 
+    /* ── Stats grid ── */
     .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; }
     .stat {
       background: var(--surface2);
@@ -125,6 +130,7 @@
     .stat.done        .number { color: var(--success); }
     .stat.total       .number { color: var(--info); }
 
+    /* ── Board list ── */
     .board-item {
       display: flex;
       align-items: center;
@@ -149,6 +155,7 @@
     .badge-success { background: rgba(0,200,117,.15); color: var(--success); }
     .badge-muted   { background: var(--border); color: var(--muted); }
 
+    /* ── Status bar ── */
     .status-bar {
       display: flex;
       align-items: center;
@@ -193,6 +200,7 @@
     }
     .last-updated { font-size: 12px; color: var(--muted); }
 
+    /* ── Token input toggle ── */
     .token-wrap { position: relative; }
     .token-wrap input { padding-right: 44px; font-family: monospace; font-size: 13px; }
     .toggle-eye {
@@ -202,9 +210,11 @@
     }
     .toggle-eye:hover { color: var(--text); background: none; transform: translateY(-50%); }
 
+    /* ── Progress bar ── */
     .progress-wrap { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-top: 8px; }
     .progress-bar  { height: 100%; border-radius: 3px; background: var(--success); transition: width .5s ease; }
 
+    /* ── Responsive ── */
     @media (max-width: 600px) {
       header { padding: 12px 16px; }
       main   { padding: 16px; }
@@ -224,6 +234,7 @@
 
 <main>
 
+  <!-- Configuration -->
   <div class="card" id="config-card">
     <div class="card-title">Configuration</div>
 
@@ -257,6 +268,7 @@
     </div>
   </div>
 
+  <!-- Results -->
   <div id="results" style="display:none;">
 
     <div class="card">
@@ -267,6 +279,7 @@
           <button class="btn-ghost" onclick="fetchDashboard()" style="padding:6px 14px;font-size:13px;">↻ Refresh</button>
         </div>
       </div>
+
       <div class="stats" id="stats"></div>
     </div>
 
@@ -284,6 +297,7 @@
 <script>
 const API = 'https://api.monday.com/v2';
 
+/* ── helpers ── */
 const $ = id => document.getElementById(id);
 
 function showAlert(msg, type = 'error') {
@@ -319,6 +333,7 @@ async function gql(query, token) {
   return json.data;
 }
 
+/* ── Step 1 · Load folders ── */
 async function loadFolders() {
   const token = $('token-input').value.trim();
   if (!token) { showAlert('Please enter your API token first.'); return; }
@@ -356,6 +371,7 @@ async function loadFolders() {
   }
 }
 
+/* ── Step 2 · Fetch dashboard ── */
 async function fetchDashboard() {
   const token    = $('token-input').value.trim();
   const folderId = $('folder-select').value;
@@ -367,15 +383,18 @@ async function fetchDashboard() {
   setLoading('Loading boards…');
 
   try {
+    /* Fetch boards in folder */
     const boardData = await gql(`{
-      boards(folder_id: ${folderId}, limit: 100, state: active) {
-        id
-        name
-        items_count
+      folders(ids: [${folderId}]) {
+        boards {
+          id
+          name
+          state
+        }
       }
     }`, token);
 
-    const boards = boardData.boards || [];
+    const boards = (boardData.folders?.[0]?.boards || []).filter(b => b.state === 'active');
     if (boards.length === 0) {
       showAlert('No active boards found in this folder.', 'info');
       setLoading('');
@@ -383,6 +402,7 @@ async function fetchDashboard() {
       return;
     }
 
+    /* Fetch item statuses for each board */
     const doneKeywords = $('done-keywords').value
       .split(',')
       .map(s => s.trim().toLowerCase())
@@ -405,6 +425,7 @@ async function fetchDashboard() {
       }
     }`, token);
 
+    /* Aggregate */
     const boardMap = {};
     (itemData.boards || []).forEach(b => { boardMap[b.id] = b; });
 
@@ -427,6 +448,7 @@ async function fetchDashboard() {
       return { ...b, total, done, outstanding };
     });
 
+    /* Render summary */
     $('stats').innerHTML = `
       <div class="stat total">
         <div class="number">${boards.length}</div>
@@ -446,6 +468,8 @@ async function fetchDashboard() {
       </div>
     `;
 
+    /* Render board list */
+    const pct = totalItems > 0 ? Math.round(totalDone / totalItems * 100) : 0;
     $('board-list').innerHTML = boardResults.map(b => {
       const bpct    = b.total > 0 ? Math.round(b.done / b.total * 100) : 0;
       const badgeCls = b.outstanding > 0 ? 'badge-warning' : 'badge-success';
@@ -483,6 +507,7 @@ function escHtml(str) {
   return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+/* Auto-load on Enter in token field */
 $('token-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') loadFolders();
 });
