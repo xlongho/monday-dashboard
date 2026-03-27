@@ -385,16 +385,14 @@ async function fetchDashboard() {
   try {
     /* Fetch boards in folder */
     const boardData = await gql(`{
-      folders(ids: [${folderId}]) {
-        boards {
-          id
-          name
-          state
-        }
+      boards(limit: 100, state: active) {
+        id
+        name
+        folder_id
       }
     }`, token);
 
-    const boards = (boardData.folders?.[0]?.boards || []).filter(b => b.state === 'active');
+    const boards = (boardData.boards || []).filter(b => String(b.folder_id) === String(folderId));
     if (boards.length === 0) {
       showAlert('No active boards found in this folder.', 'info');
       setLoading('');
