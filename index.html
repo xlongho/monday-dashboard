@@ -323,7 +323,7 @@ async function gql(query, token) {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': token,
-      'API-Version': '2024-01',
+      'API-Version': '2023-10',
     },
     body: JSON.stringify({ query }),
   });
@@ -385,14 +385,13 @@ async function fetchDashboard() {
   try {
     /* Fetch boards in folder */
     const boardData = await gql(`{
-      boards(limit: 100, state: active) {
+      boards(folder_id: ${folderId}, limit: 100, state: active) {
         id
         name
-        folder_id
       }
     }`, token);
 
-    const boards = (boardData.boards || []).filter(b => String(b.folder_id) === String(folderId));
+    const boards = boardData.boards || [];
     if (boards.length === 0) {
       showAlert('No active boards found in this folder.', 'info');
       setLoading('');
