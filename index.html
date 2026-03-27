@@ -16,7 +16,6 @@
       --muted: #8888aa;
       --success: #00c875;
       --warning: #fdab3d;
-      --danger: #ff3d57;
       --info: #579bfc;
     }
 
@@ -29,7 +28,6 @@
       min-height: 100vh;
     }
 
-    /* ── Header ── */
     header {
       background: var(--surface);
       border-bottom: 1px solid var(--border);
@@ -47,15 +45,22 @@
     }
     header h1 { font-size: 18px; font-weight: 700; }
     header p  { font-size: 13px; color: var(--muted); }
+    .version-badge {
+      margin-left: auto;
+      font-size: 12px;
+      color: var(--muted);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 4px 10px;
+    }
 
-    /* ── Layout ── */
     main {
       max-width: 960px;
       margin: 0 auto;
       padding: 32px 24px;
     }
 
-    /* ── Card ── */
     .card {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -72,7 +77,6 @@
       margin-bottom: 16px;
     }
 
-    /* ── Form controls ── */
     .field { margin-bottom: 16px; }
     label  { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
     input, select {
@@ -115,7 +119,6 @@
     }
     .btn-ghost:hover { background: var(--surface2); }
 
-    /* ── Stats grid ── */
     .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; }
     .stat {
       background: var(--surface2);
@@ -130,7 +133,15 @@
     .stat.done        .number { color: var(--success); }
     .stat.total       .number { color: var(--info); }
 
-    /* ── Board list ── */
+    /* Search bar */
+    .search-wrap { position: relative; margin-bottom: 16px; }
+    .search-wrap input { padding-left: 36px; }
+    .search-icon {
+      position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+      color: var(--muted); font-size: 14px; pointer-events: none;
+    }
+    .board-count { font-size: 12px; color: var(--muted); margin-bottom: 12px; }
+
     .board-item {
       display: flex;
       align-items: center;
@@ -153,9 +164,7 @@
     }
     .badge-warning { background: rgba(253,171,61,.15); color: var(--warning); }
     .badge-success { background: rgba(0,200,117,.15); color: var(--success); }
-    .badge-muted   { background: var(--border); color: var(--muted); }
 
-    /* ── Status bar ── */
     .status-bar {
       display: flex;
       align-items: center;
@@ -173,13 +182,6 @@
       flex-shrink: 0;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
-
-    .empty {
-      text-align: center;
-      padding: 40px;
-      color: var(--muted);
-      font-size: 14px;
-    }
 
     .alert {
       padding: 12px 16px;
@@ -200,7 +202,6 @@
     }
     .last-updated { font-size: 12px; color: var(--muted); }
 
-    /* ── Token input toggle ── */
     .token-wrap { position: relative; }
     .token-wrap input { padding-right: 44px; font-family: monospace; font-size: 13px; }
     .toggle-eye {
@@ -210,11 +211,9 @@
     }
     .toggle-eye:hover { color: var(--text); background: none; transform: translateY(-50%); }
 
-    /* ── Progress bar ── */
     .progress-wrap { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-top: 8px; }
     .progress-bar  { height: 100%; border-radius: 3px; background: var(--success); transition: width .5s ease; }
 
-    /* ── Responsive ── */
     @media (max-width: 600px) {
       header { padding: 12px 16px; }
       main   { padding: 16px; }
@@ -230,48 +229,32 @@
     <h1>Creative Dashboard</h1>
     <p>monday.com · Outstanding Projects</p>
   </div>
-  <div style="margin-left:auto; font-size:12px; color:var(--muted); background:var(--surface2); border:1px solid var(--border); border-radius:6px; padding:4px 10px;">
-    v1.00
-  </div>
+  <div class="version-badge">v1.01</div>
 </header>
 
 <main>
 
-  <!-- Configuration -->
-  <div class="card" id="config-card">
+  <div class="card">
     <div class="card-title">Configuration</div>
-
     <div id="alert-area"></div>
 
     <div class="field">
       <label for="token-input">API Token</label>
       <div class="token-wrap">
         <input type="password" id="token-input" placeholder="eyJhbGci…" autocomplete="off" />
-        <button class="toggle-eye" onclick="toggleEye()" title="Show/hide token" id="eye-btn">👁</button>
+        <button class="toggle-eye" onclick="toggleEye()" title="Show/hide token">👁</button>
       </div>
     </div>
 
     <div class="row">
       <div class="field">
-        <label for="folder-select">Folder</label>
-        <select id="folder-select" disabled>
-          <option value="">— load folders first —</option>
-        </select>
+        <label for="done-keywords">"Done" status keywords <span style="color:var(--muted);font-weight:400;">(comma-separated)</span></label>
+        <input type="text" id="done-keywords" value="done, completed, closed, cancelled" />
       </div>
-      <button onclick="loadFolders()" id="load-btn">Load Folders</button>
-      <button class="btn-ghost" onclick="fetchDashboard()" id="fetch-btn" disabled>Show Dashboard</button>
-    </div>
-
-    <div class="field" style="margin-top:16px; margin-bottom:0;">
-      <label for="done-keywords">
-        "Done" status keywords
-        <span style="color:var(--muted); font-weight:400;">(comma-separated, case-insensitive)</span>
-      </label>
-      <input type="text" id="done-keywords" value="done, completed, closed, cancelled" />
+      <button onclick="loadBoards()" id="load-btn">Load Boards</button>
     </div>
   </div>
 
-  <!-- Results -->
   <div id="results" style="display:none;">
 
     <div class="card">
@@ -279,15 +262,21 @@
         <div class="card-title" style="margin-bottom:0;">Summary</div>
         <div style="display:flex;align-items:center;gap:10px;">
           <span class="last-updated" id="last-updated"></span>
-          <button class="btn-ghost" onclick="fetchDashboard()" style="padding:6px 14px;font-size:13px;">↻ Refresh</button>
+          <button class="btn-ghost" onclick="loadBoards()" style="padding:6px 14px;font-size:13px;">↻ Refresh</button>
         </div>
       </div>
-
       <div class="stats" id="stats"></div>
     </div>
 
     <div class="card">
-      <div class="card-title">Boards in Folder</div>
+      <div class="card-title">Boards</div>
+
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="search-input" placeholder="Filter boards by name…" oninput="renderBoards()" />
+      </div>
+
+      <div class="board-count" id="board-count"></div>
       <div id="board-list"></div>
     </div>
 
@@ -299,13 +288,12 @@
 
 <script>
 const API = 'https://api.monday.com/v2';
-
-/* ── helpers ── */
 const $ = id => document.getElementById(id);
 
+let allBoardResults = [];
+
 function showAlert(msg, type = 'error') {
-  $('alert-area').innerHTML =
-    `<div class="alert alert-${type}">${msg}</div>`;
+  $('alert-area').innerHTML = `<div class="alert alert-${type}">${msg}</div>`;
 }
 function clearAlert() { $('alert-area').innerHTML = ''; }
 
@@ -326,7 +314,6 @@ async function gql(query, token) {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': token,
-      'API-Version': '2023-10',
     },
     body: JSON.stringify({ query }),
   });
@@ -336,59 +323,17 @@ async function gql(query, token) {
   return json.data;
 }
 
-/* ── Step 1 · Load folders ── */
-async function loadFolders() {
+async function loadBoards() {
   const token = $('token-input').value.trim();
   if (!token) { showAlert('Please enter your API token first.'); return; }
   clearAlert();
   $('load-btn').disabled = true;
-  setLoading('Fetching folders…');
-
-  try {
-    const data = await gql(`{
-      folders(limit: 100) {
-        id
-        name
-        parent { id name }
-      }
-    }`, token);
-
-    const folders = data.folders || [];
-    const sel = $('folder-select');
-    sel.innerHTML = '<option value="">— select a folder —</option>';
-    folders.forEach(f => {
-      const opt = document.createElement('option');
-      opt.value = f.id;
-      opt.textContent = f.parent ? `${f.parent.name} / ${f.name}` : f.name;
-      sel.appendChild(opt);
-    });
-    sel.disabled = false;
-    $('fetch-btn').disabled = false;
-    setLoading('');
-    if (folders.length === 0) showAlert('No folders found in your account.', 'info');
-  } catch (e) {
-    showAlert(`Failed to load folders: ${e.message}`);
-    setLoading('');
-  } finally {
-    $('load-btn').disabled = false;
-  }
-}
-
-/* ── Step 2 · Fetch dashboard ── */
-async function fetchDashboard() {
-  const token    = $('token-input').value.trim();
-  const folderId = $('folder-select').value;
-  if (!token)    { showAlert('Please enter your API token.'); return; }
-  if (!folderId) { showAlert('Please select a folder.'); return; }
-  clearAlert();
-  $('fetch-btn').disabled = true;
   $('results').style.display = 'none';
   setLoading('Loading boards…');
 
   try {
-    /* Fetch boards in folder */
     const boardData = await gql(`{
-      boards(folder_id: ${folderId}, limit: 100, state: active) {
+      boards(limit: 100, state: active) {
         id
         name
       }
@@ -396,17 +341,13 @@ async function fetchDashboard() {
 
     const boards = boardData.boards || [];
     if (boards.length === 0) {
-      showAlert('No active boards found in this folder.', 'info');
+      showAlert('No active boards found in your account.', 'info');
       setLoading('');
-      $('fetch-btn').disabled = false;
       return;
     }
 
-    /* Fetch item statuses for each board */
     const doneKeywords = $('done-keywords').value
-      .split(',')
-      .map(s => s.trim().toLowerCase())
-      .filter(Boolean);
+      .split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
 
     const boardIds = boards.map(b => b.id).join(',');
     setLoading(`Loading items from ${boards.length} board(s)…`);
@@ -425,14 +366,12 @@ async function fetchDashboard() {
       }
     }`, token);
 
-    /* Aggregate */
     const boardMap = {};
     (itemData.boards || []).forEach(b => { boardMap[b.id] = b; });
 
-    let totalItems = 0, totalDone = 0, totalOutstanding = 0;
-    const boardResults = boards.map(b => {
-      const live   = boardMap[b.id];
-      const items  = live?.items_page?.items || [];
+    allBoardResults = boards.map(b => {
+      const live  = boardMap[b.id];
+      const items = live?.items_page?.items || [];
       let done = 0;
       items.forEach(item => {
         const isDone = item.column_values.some(cv =>
@@ -442,77 +381,88 @@ async function fetchDashboard() {
       });
       const total       = items.length;
       const outstanding = total - done;
-      totalItems       += total;
-      totalDone        += done;
-      totalOutstanding += outstanding;
       return { ...b, total, done, outstanding };
     });
 
-    /* Render summary */
-    $('stats').innerHTML = `
-      <div class="stat total">
-        <div class="number">${boards.length}</div>
-        <div class="label">Boards</div>
-      </div>
-      <div class="stat total">
-        <div class="number">${totalItems}</div>
-        <div class="label">Total Items</div>
-      </div>
-      <div class="stat outstanding">
-        <div class="number">${totalOutstanding}</div>
-        <div class="label">Outstanding</div>
-      </div>
-      <div class="stat done">
-        <div class="number">${totalDone}</div>
-        <div class="label">Done</div>
-      </div>
-    `;
+    updateStats(allBoardResults);
+    renderBoards();
 
-    /* Render board list */
-    const pct = totalItems > 0 ? Math.round(totalDone / totalItems * 100) : 0;
-    $('board-list').innerHTML = boardResults.map(b => {
-      const bpct    = b.total > 0 ? Math.round(b.done / b.total * 100) : 0;
-      const badgeCls = b.outstanding > 0 ? 'badge-warning' : 'badge-success';
-      const badgeTxt = b.outstanding > 0
-        ? `${b.outstanding} outstanding`
-        : 'All done ✓';
-      return `
-        <div class="board-item">
-          <div>
-            <div class="board-name">${escHtml(b.name)}</div>
-            <div class="board-meta">${b.done} / ${b.total} items done</div>
-            <div class="progress-wrap" style="width:180px;">
-              <div class="progress-bar" style="width:${bpct}%"></div>
-            </div>
-          </div>
-          <span class="badge ${badgeCls}">${badgeTxt}</span>
-        </div>
-      `;
-    }).join('');
-
-    $('last-updated').textContent =
-      `Updated ${new Date().toLocaleTimeString()}`;
-
+    $('last-updated').textContent = `Updated ${new Date().toLocaleTimeString()}`;
     $('results').style.display = 'block';
     setLoading('');
   } catch (e) {
     showAlert(`Error fetching data: ${e.message}`);
     setLoading('');
   } finally {
-    $('fetch-btn').disabled = false;
+    $('load-btn').disabled = false;
   }
+}
+
+function updateStats(boards) {
+  const totalBoards      = boards.length;
+  const totalItems       = boards.reduce((s, b) => s + b.total, 0);
+  const totalOutstanding = boards.reduce((s, b) => s + b.outstanding, 0);
+  const totalDone        = boards.reduce((s, b) => s + b.done, 0);
+
+  $('stats').innerHTML = `
+    <div class="stat total">
+      <div class="number">${totalBoards}</div>
+      <div class="label">Boards</div>
+    </div>
+    <div class="stat total">
+      <div class="number">${totalItems}</div>
+      <div class="label">Total Items</div>
+    </div>
+    <div class="stat outstanding">
+      <div class="number">${totalOutstanding}</div>
+      <div class="label">Outstanding</div>
+    </div>
+    <div class="stat done">
+      <div class="number">${totalDone}</div>
+      <div class="label">Done</div>
+    </div>
+  `;
+}
+
+function renderBoards() {
+  const query   = $('search-input').value.trim().toLowerCase();
+  const visible = query
+    ? allBoardResults.filter(b => b.name.toLowerCase().includes(query))
+    : allBoardResults;
+
+  $('board-count').textContent =
+    query ? `Showing ${visible.length} of ${allBoardResults.length} boards` : `${allBoardResults.length} boards`;
+
+  if (visible.length === 0) {
+    $('board-list').innerHTML = `<div style="text-align:center;padding:32px;color:var(--muted);font-size:14px;">No boards match your search.</div>`;
+    return;
+  }
+
+  $('board-list').innerHTML = visible.map(b => {
+    const bpct    = b.total > 0 ? Math.round(b.done / b.total * 100) : 0;
+    const badgeCls = b.outstanding > 0 ? 'badge-warning' : 'badge-success';
+    const badgeTxt = b.outstanding > 0 ? `${b.outstanding} outstanding` : 'All done ✓';
+    return `
+      <div class="board-item">
+        <div style="flex:1;min-width:0;">
+          <div class="board-name">${escHtml(b.name)}</div>
+          <div class="board-meta">${b.done} / ${b.total} items done</div>
+          <div class="progress-wrap">
+            <div class="progress-bar" style="width:${bpct}%"></div>
+          </div>
+        </div>
+        <span class="badge ${badgeCls}">${badgeTxt}</span>
+      </div>
+    `;
+  }).join('');
 }
 
 function escHtml(str) {
   return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-/* Auto-load on Enter in token field */
 $('token-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter') loadFolders();
-});
-$('folder-select').addEventListener('change', () => {
-  if ($('folder-select').value) fetchDashboard();
+  if (e.key === 'Enter') loadBoards();
 });
 </script>
 </body>
